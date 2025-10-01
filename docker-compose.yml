@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  odoo:
+    image: odoo:18.0
+    depends_on:
+      - db
+    ports:
+      - "8069:8069"
+    volumes:
+      - ./odoo-web-data:/var/lib/odoo
+      - ./config:/etc/odoo
+      - ./addons:/mnt/extra-addons
+      - ./logs:/var/log/odoo
+    environment:
+      - HOST=db
+      - USER=odoo
+      - PASSWORD=odoo
+    #command: odoo -d odoo --db_user=odoo --db_password=odoo -i base
+    restart: always
+
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=odoo
+      - POSTGRES_USER=odoo
+      - POSTGRES_PASSWORD=odoo
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgresql:/var/lib/postgresql/data
+    restart: always
+
+  pgadmin4:
+    image: dpage/pgadmin4 # Imagen oficial de pgAdmin4
+    depends_on:
+      - db
+    ports:
+      - "8080:80" # Mapea el puerto 8080 para acceder a pgAdmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: nicogarciam@gmail.com # Correo electrónico predeterminado
+      PGADMIN_DEFAULT_PASSWORD: admin # Contraseña predeterminada (cambiar para producción)
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    restart: unless-stopped # Reinicia a menos que se detenga manualmente
+
+volumes:
+  odoo-web-data:
+    name: odoo-web-data
+  postgresql:
+    name: odoo-postgresql
+  pgadmin_data:
+    name: pgadmin_data
